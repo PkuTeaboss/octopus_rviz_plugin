@@ -1,0 +1,23 @@
+<package>
+  <name>octopus_rviz_plugin</name>
+  <version>0.0.0</version>
+  <description>
+     Rviz Plugins for Tusimple Octopus System
+  </description>
+  <maintainer email="czhang0328@gmail.com">Cheng Zhang</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>qtbase5-dev</build_depend>
+  <build_depend>rviz</build_depend>
+
+  <run_depend>libqt5-core</run_depend>
+  <run_depend>libqt5-gui</run_depend>
+  <run_depend>libqt5-widgets</run_depend>
+  <run_depend>rviz</run_depend>
+
+  <export>
+      <rviz plugin="${prefix}/plugin_description.xml"/>
+  </export>
+</package>
