@@ -32,6 +32,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Here we specify the list of source files.
 ## The generated MOC files are included automatically as headers.
 set(SRC_FILES
+  src/overlay_utils.cpp
   src/speed_display.cpp
 )
 
