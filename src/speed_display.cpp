@@ -5,15 +5,37 @@
 
 #include <QPainter>
 
+#include <iomanip>
+
 namespace octopus_rviz_plugin
 {
 
 
   SpeedDisplay::SpeedDisplay()
-  : rviz::Display(), width_(128), height_(128), left_(16), top_(16)
+  : rviz::Display(), update_required_(false), data_(0)
   {
+    topic_property_ = new rviz::RosTopicProperty(
+      "Topic", "",
+      ros::message_traits::datatype<std_msgs::Float32>(),
+      "std_msgs::Float32 topic to subscribe to.",
+      this, SLOT( updateTopic() ));
+
+    size_property_ = new rviz::IntProperty(
+      "size", 200, "", this, SLOT(updateSize())
+      );
+    left_property_ = new rviz::IntProperty(
+      "left", 10, "", this, SLOT(updateLeft())
+      );
+    top_property_ = new rviz::IntProperty(
+      "top", 10, "", this, SLOT(updateTop())
+      );
+
+    pointer_color_property_ = new rviz::ColorProperty(
+      "Pointer Color", QColor(220, 203, 214), "", this, SLOT(updatePointerColor())
+      );
+
     fg_color_property_ = new rviz::ColorProperty(
-      "Foreground Color", QColor(220, 220, 0), "", this, SLOT(updateFGColor())
+      "Dashboard Color", QColor(220, 220, 0), "", this, SLOT(updateFGColor())
       );
     fg_alpha_property_ = new rviz::FloatProperty(
       "Foreground Alpha", 0.8, "", this,SLOT(updateFGAlpha())
@@ -39,32 +61,68 @@ namespace octopus_rviz_plugin
     ss << "SpeedDisplay" << count++;
     overlay_.reset(new OverlayObject(ss.str()));
 
-    overlay_->updateTextureSize(width_, height_);
-    overlay_->setPosition(left_, top_);
-    overlay_->setDimensions(overlay_->getTextureWidth(),
-      overlay_->getTextureHeight());
-
-    overlay_->show(); 
-
+    onEnable();
+    updateSize();
+    updateLeft();
+    updateTop();
+    updatePointerColor();
     updateFGColor();
     updateFGAlpha();
     updateBGColor();
     updateBGAlpha();
+
+    overlay_->updateTextureSize(width_, height_);
+    overlay_->setPosition(left_, top_);
+    overlay_->setDimensions(overlay_->getTextureWidth(),
+      overlay_->getTextureHeight());
+    overlay_->show(); 
+    draw(data_);
   }
 
 
   void SpeedDisplay::update(float wall_dt, float ros_dt) {
+    if (update_required_) {
+      update_required_ = false;
+      overlay_->updateTextureSize(width_, height_);
+      overlay_->setPosition(left_, top_);
+      overlay_->setDimensions(overlay_->getTextureWidth(),
+        overlay_->getTextureHeight());
+      draw(data_);
+    }
+  }
 
-    draw(20);
+  void SpeedDisplay::subscribe() {
+    std::string topic_name = topic_property_->getTopicStd();
+    if (topic_name.length() > 0 && topic_name != "/") {
+      ros::NodeHandle n;
+      sub_ = n.subscribe(topic_name, 1, &SpeedDisplay::processMessage, this);
+    }
+  }
 
+  void SpeedDisplay::unsubscribe() {
+    sub_.shutdown();
   }
 
   void SpeedDisplay::onEnable() {
+    subscribe();
     overlay_->show();
   }
 
   void SpeedDisplay::onDisable() {
+    unsubscribe();
     overlay_->hide();
+  }
+
+
+  void SpeedDisplay::processMessage(const std_msgs::Float32::ConstPtr& msg) {
+    if (!overlay_->isVisible()) {
+      return;
+    }
+    if (data_ != msg->data) {
+      data_ = msg->data;
+      update_required_ = true;
+    }
+
   }
 
 
@@ -82,12 +140,13 @@ namespace octopus_rviz_plugin
     float max_degree = 300;
     int centerX = width_ / 2;
     int centerY = height_ / 2;
-    int scaleInnerR1 = width_ / 2 - 9;
-    int scaleInnerR2 = width_ / 2 - 6;
-    int scaleOuterR = width_ / 2 - 2;
-    int textR = width_ / 2 - 19;
-    int textSize = 8;
-    int pointerInnerR = width_ / 2 - 40;
+    int scaleInnerR1 = width_ / 2 - 9 * width_ / 128;
+    int scaleInnerR2 = width_ / 2 - 6 * width_ / 128;
+    int scaleOuterR = width_ / 2 - 2 * width_ / 128;
+    int textR = width_ / 2 - 19 * width_ / 128;
+    int textSize = 8 * width_ / 128;
+    int speedSize = 14 * width_ / 128;
+    int pointerInnerR = width_ / 2 - 40 * width_ / 128;
     int pointerOuterR = width_ / 2 - 10;
 
 
@@ -125,11 +184,33 @@ namespace octopus_rviz_plugin
       }
 
       painter.drawLine(scaleInnerX, scaleInnerY, scaleOuterX, scaleOuterY);
-
     }
 
+    // Draw Speed
+    painter.drawText(
+      centerX - textSize * 3, centerY + speedSize * 2, textSize*6, textSize,
+      Qt::AlignCenter | Qt::AlignVCenter, "MPH"
+      );
+
+    font.setPointSize(speedSize);
+    painter.setFont(font);
+
+    std::stringstream ss;
+    ss<< std::fixed;
+    ss<< std::setprecision(1);
+    ss<< val;
+    painter.drawText(
+      centerX - speedSize * 3, centerY - speedSize/2, speedSize*6, speedSize,
+      Qt::AlignCenter | Qt::AlignVCenter, ss.str().c_str()
+      );
+
+
+
     // Draw Pointer
-    painter.setPen(QPen(fg_color_, 2, Qt::SolidLine));
+    if (val < 0) val = 0;
+    else if (val > max_speed) val = max_speed;
+
+    painter.setPen(QPen(pointer_color_, 2, Qt::SolidLine));
     int degree = min_degree + round(val / max_speed * (max_degree - min_degree));
     int pointerInnerX = centerX + pointerInnerR * (-sin(degree * 3.14 / 180));
     int pointerInnerY = centerY + pointerInnerR * (cos(degree * 3.14 / 180));
@@ -143,6 +224,37 @@ namespace octopus_rviz_plugin
   }
 
 
+  void SpeedDisplay::updateTopic() {
+    unsubscribe();
+    subscribe();
+  }
+
+
+  void SpeedDisplay::updateSize() {
+    int size = size_property_->getInt();
+    if (size <= 32 || size >= 1024) {
+      std::cerr<<"Speed Display Size can not be "<<size<<". It must between 32 and 1024"<<std::endl;
+      return;
+    }
+    width_ = size_property_->getInt();
+    height_ = size_property_->getInt();
+  }
+
+  void SpeedDisplay::updateLeft() {
+    left_ = left_property_->getInt();
+  }
+
+  void SpeedDisplay::updateTop() {
+    top_ = top_property_->getInt();
+  }
+
+  void SpeedDisplay::updatePointerColor() {
+    int alpha = pointer_color_.alpha();
+    pointer_color_ = pointer_color_property_->getColor();
+    pointer_color_.setAlpha(alpha);
+  }
+
+
   void SpeedDisplay::updateFGColor() {
     int alpha = fg_color_.alpha();
     fg_color_ = fg_color_property_->getColor();
@@ -150,6 +262,7 @@ namespace octopus_rviz_plugin
   }
 
   void SpeedDisplay::updateFGAlpha() {
+    pointer_color_.setAlpha(fg_alpha_property_->getFloat() * 255.0);
     fg_color_.setAlpha(fg_alpha_property_->getFloat() * 255.0);
   }
 

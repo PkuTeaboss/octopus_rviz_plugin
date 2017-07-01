@@ -3,9 +3,12 @@
 #ifndef SPEED_DISPLAY_H
 #define SPEED_DISPLAY_H
 
+#include "std_msgs/Float32.h"
+
 #ifndef Q_MOC_RUN
 
 #include <rviz/display.h>
+
 
 #include "overlay_utils.h"
 #include <OGRE/OgreColourValue.h>
@@ -24,8 +27,7 @@
 namespace octopus_rviz_plugin
 {
 
-	class SpeedDisplay: public rviz::Display
-	{
+	class SpeedDisplay: public rviz::Display {
 		Q_OBJECT
 	public:
 		SpeedDisplay();
@@ -36,30 +38,47 @@ namespace octopus_rviz_plugin
    	virtual void update(float wall_dt, float ros_dt);		// Inherited; Called periodically by the visualization manager.
    	virtual void onEnable();														// Derived classes override this to do the actual work of enabling themselves.
    	virtual void onDisable();														// Derived classes override this to do the actual work of disabling themselves. 
+   	void processMessage(const std_msgs::Float32::ConstPtr& msg);
+   	void subscribe();
+   	void unsubscribe();
 
    	void draw(double val);
 
+   	ros::Subscriber sub_;
    	OverlayObject::Ptr overlay_;
+   	bool update_required_;
+   	int data_;
    	int width_;
    	int height_;
    	int left_;
    	int top_;
+   	QColor pointer_color_;
    	QColor fg_color_;
    	QColor bg_color_;
 
-   	rviz::ColorProperty* fg_color_property_;
-   	rviz::FloatProperty* fg_alpha_property_;
-   	rviz::ColorProperty* bg_color_property_;
-   	rviz::FloatProperty* bg_alpha_property_;
+   	rviz::RosTopicProperty* topic_property_;
+   	rviz::IntProperty*		size_property_;
+   	rviz::IntProperty*		left_property_;
+   	rviz::IntProperty*		top_property_;
+   	rviz::ColorProperty*	pointer_color_property_;
+   	rviz::ColorProperty* 	fg_color_property_;
+   	rviz::FloatProperty* 	fg_alpha_property_;
+   	rviz::ColorProperty* 	bg_color_property_;
+   	rviz::FloatProperty* 	bg_alpha_property_;
 
 
-  protected Q_SLOTS:
-    void updateFGColor();
+   	protected Q_SLOTS:
+   	void updateTopic();
+   	void updateSize();
+   	void updateLeft();
+   	void updateTop();
+   	void updatePointerColor();
+   	void updateFGColor();
    	void updateFGAlpha();
    	void updateBGColor();
    	void updateBGAlpha();
 
-  };
+   };
 
  }
 
