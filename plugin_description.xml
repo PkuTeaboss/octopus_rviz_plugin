@@ -1,9 +1,18 @@
 <library path="lib/liboctopus_rviz_plugin">
-  <class name="octopus_rviz_plugin/Speed"
-    type="octopus_rviz_plugin::SpeedDisplay"
-    base_class_type="rviz::Display">
-    <description>
-      Displays speed
-    </description>
-  </class>
+	<class name="octopus_rviz_plugin/Speed"
+		type="octopus_rviz_plugin::SpeedDisplay"
+		base_class_type="rviz::Display">
+		<description>
+			Displays speed
+		</description>
+	</class>
+
+	<class name="octopus_rviz_plugin/OverlayPicker"
+		type="octopus_rviz_plugin::OverlayPickerTool"
+		base_class_type="rviz::Tool">
+		<description>
+			Tool to drag and drop octopus overlays in rviz.
+		</description>
+	</class>
+
 </library>

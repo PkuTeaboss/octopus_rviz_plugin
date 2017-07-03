@@ -138,23 +138,26 @@ namespace octopus_rviz_plugin
     int textCount = 4;
     float min_degree = 60;
     float max_degree = 300;
+
     int centerX = width_ / 2;
     int centerY = height_ / 2;
     int scaleInnerR1 = width_ / 2 - 9 * width_ / 128;
     int scaleInnerR2 = width_ / 2 - 6 * width_ / 128;
     int scaleOuterR = width_ / 2 - 2 * width_ / 128;
+    int scaleWidth = 3 * width_ / 200;
     int textR = width_ / 2 - 19 * width_ / 128;
     int textSize = 8 * width_ / 128;
     int speedSize = 14 * width_ / 128;
     int pointerInnerR = width_ / 2 - 40 * width_ / 128;
     int pointerOuterR = width_ / 2 - 10;
+    int pointerWidth = 2 * width_ / 200;
 
 
     int n = max_speed / interval;
     float interval_degree = (max_degree - min_degree) / n;
 
     // Draw BackGround Dash Board
-    painter.setPen(QPen(fg_color_, 3, Qt::SolidLine));
+    painter.setPen(QPen(fg_color_, scaleWidth, Qt::SolidLine));
     QFont font = painter.font();
     font.setPointSize(textSize);
     font.setBold(true);
@@ -210,7 +213,7 @@ namespace octopus_rviz_plugin
     if (val < 0) val = 0;
     else if (val > max_speed) val = max_speed;
 
-    painter.setPen(QPen(pointer_color_, 2, Qt::SolidLine));
+    painter.setPen(QPen(pointer_color_, pointerWidth, Qt::SolidLine));
     int degree = min_degree + round(val / max_speed * (max_degree - min_degree));
     int pointerInnerX = centerX + pointerInnerR * (-sin(degree * 3.14 / 180));
     int pointerInnerY = centerY + pointerInnerR * (cos(degree * 3.14 / 180));
@@ -233,25 +236,28 @@ namespace octopus_rviz_plugin
   void SpeedDisplay::updateSize() {
     int size = size_property_->getInt();
     if (size <= 32 || size >= 1024) {
-      std::cerr<<"Speed Display Size can not be "<<size<<". It must between 32 and 1024"<<std::endl;
       return;
     }
     width_ = size_property_->getInt();
     height_ = size_property_->getInt();
+    update_required_ = true;
   }
 
   void SpeedDisplay::updateLeft() {
     left_ = left_property_->getInt();
+    update_required_ = true;
   }
 
   void SpeedDisplay::updateTop() {
     top_ = top_property_->getInt();
+    update_required_ = true;
   }
 
   void SpeedDisplay::updatePointerColor() {
     int alpha = pointer_color_.alpha();
     pointer_color_ = pointer_color_property_->getColor();
     pointer_color_.setAlpha(alpha);
+    update_required_ = true;
   }
 
 
@@ -259,24 +265,47 @@ namespace octopus_rviz_plugin
     int alpha = fg_color_.alpha();
     fg_color_ = fg_color_property_->getColor();
     fg_color_.setAlpha(alpha);
+    update_required_ = true;
   }
 
   void SpeedDisplay::updateFGAlpha() {
     pointer_color_.setAlpha(fg_alpha_property_->getFloat() * 255.0);
     fg_color_.setAlpha(fg_alpha_property_->getFloat() * 255.0);
+    update_required_ = true;
   }
 
   void SpeedDisplay::updateBGColor() {
     int alpha = bg_color_.alpha();
     bg_color_ = bg_color_property_->getColor();
     bg_color_.setAlpha(alpha);
+    update_required_ = true;
   }
 
   void SpeedDisplay::updateBGAlpha() {
     bg_color_.setAlpha(bg_alpha_property_->getFloat() * 255.0);
+    update_required_ = true;
   }
 
 
+  bool SpeedDisplay::isInRegion(int x, int y)
+  {
+    return (top_ < y && top_ + height_ > y &&
+      left_ < x && left_ + width_ > x);
+  }
+
+  void SpeedDisplay::movePosition(int x, int y)
+  {
+    top_ = y;
+    left_ = x;
+    update_required_ = true;
+  }
+
+  void SpeedDisplay::setPosition(int x, int y)
+  {
+    top_property_->setValue(y);
+    left_property_->setValue(x);
+    update_required_ = true;
+  }
 
 }
 

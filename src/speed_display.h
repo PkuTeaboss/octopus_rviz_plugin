@@ -33,7 +33,14 @@ namespace octopus_rviz_plugin
 		SpeedDisplay();
 		virtual ~SpeedDisplay();
 
-	protected:
+      // methods for OverlayPickerTool
+      virtual bool isInRegion(int x, int y);
+      virtual void movePosition(int x, int y);
+      virtual void setPosition(int x, int y);
+      virtual int getX() { return left_; };
+      virtual int getY() { return top_; };
+
+   protected:
    	virtual void onInitialize();												// Inherited; Called when init
    	virtual void update(float wall_dt, float ros_dt);		// Inherited; Called periodically by the visualization manager.
    	virtual void onEnable();														// Derived classes override this to do the actual work of enabling themselves.
@@ -80,6 +87,6 @@ namespace octopus_rviz_plugin
 
    };
 
- }
+}
 
 #endif 

@@ -34,6 +34,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 set(SRC_FILES
   src/overlay_utils.cpp
   src/speed_display.cpp
+  src/overlay_picker_tool.cpp
 )
 
 ## An rviz plugin is just a shared library, so here we declare the
