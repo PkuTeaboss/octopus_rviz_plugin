@@ -49,7 +49,7 @@
 namespace octopus_rviz_plugin
 {
   OverlayPickerTool::OverlayPickerTool()
-    : is_moving_(false), shift_pressing_(false), rviz::Tool()
+  : is_moving_(false), shift_pressing_(false), rviz::Tool()
   {
 
   }
@@ -57,10 +57,7 @@ namespace octopus_rviz_plugin
   int OverlayPickerTool::processKeyEvent(QKeyEvent* event, rviz::RenderPanel* panel)
   {
     if (event->type() == QEvent::KeyPress && event->key() == 16777248) { // sift
-      shift_pressing_ = true;
-    }
-    else if (event->type() == QEvent::KeyRelease && event->key() == 16777248) {
-      shift_pressing_ = false;
+      shift_pressing_ = !shift_pressing_;
     }
     return 0;
   }

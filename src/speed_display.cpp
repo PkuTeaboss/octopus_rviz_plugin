@@ -16,8 +16,9 @@ namespace octopus_rviz_plugin
   {
     topic_property_ = new rviz::RosTopicProperty(
       "Topic", "",
-      ros::message_traits::datatype<std_msgs::Float32>(),
-      "std_msgs::Float32 topic to subscribe to.",
+      //ros::message_traits::datatype<std_msgs::Float32>(),
+      ros::message_traits::datatype<dbw_mkz_msgs::TwistCmd>(),
+      "dbw_mkz_msgs::TwistCmd topic to subscribe to.",
       this, SLOT( updateTopic() ));
 
     size_property_ = new rviz::IntProperty(
@@ -113,7 +114,7 @@ namespace octopus_rviz_plugin
     overlay_->hide();
   }
 
-
+  /*
   void SpeedDisplay::processMessage(const std_msgs::Float32::ConstPtr& msg) {
     if (!overlay_->isVisible()) {
       return;
@@ -122,7 +123,16 @@ namespace octopus_rviz_plugin
       data_ = msg->data;
       update_required_ = true;
     }
+  }*/
 
+  void SpeedDisplay::processMessage(const dbw_mkz_msgs::TwistCmd::ConstPtr& msg) {
+    if (!overlay_->isVisible()) {
+      return;
+    }
+    if (data_ != msg->twist.linear.x) {
+      data_ = msg->twist.linear.x;
+      update_required_ = true;
+    }
   }
 
 

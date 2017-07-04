@@ -7,11 +7,12 @@
 		</description>
 	</class>
 
-	<class name="octopus_rviz_plugin/OverlayPicker"
+	<class name="octopus_rviz_plugin/Octopus Picker"
 		type="octopus_rviz_plugin::OverlayPickerTool"
 		base_class_type="rviz::Tool">
 		<description>
 			Tool to drag and drop octopus overlays in rviz.
+			Use SHIFT to switch magnet for overlay dragging.
 		</description>
 	</class>
 

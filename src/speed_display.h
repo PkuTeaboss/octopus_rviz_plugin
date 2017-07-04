@@ -3,7 +3,7 @@
 #ifndef SPEED_DISPLAY_H
 #define SPEED_DISPLAY_H
 
-#include "std_msgs/Float32.h"
+#include <dbw_mkz_msgs/TwistCmd.h>
 
 #ifndef Q_MOC_RUN
 
@@ -45,7 +45,8 @@ namespace octopus_rviz_plugin
    	virtual void update(float wall_dt, float ros_dt);		// Inherited; Called periodically by the visualization manager.
    	virtual void onEnable();														// Derived classes override this to do the actual work of enabling themselves.
    	virtual void onDisable();														// Derived classes override this to do the actual work of disabling themselves. 
-   	void processMessage(const std_msgs::Float32::ConstPtr& msg);
+   	//void processMessage(const std_msgs::Float32::ConstPtr& msg);
+      void processMessage(const dbw_mkz_msgs::TwistCmd::ConstPtr& msg);
    	void subscribe();
    	void unsubscribe();
 
@@ -54,7 +55,7 @@ namespace octopus_rviz_plugin
    	ros::Subscriber sub_;
    	OverlayObject::Ptr overlay_;
    	bool update_required_;
-   	int data_;
+   	double data_;
    	int width_;
    	int height_;
    	int left_;

@@ -3,8 +3,8 @@
 ## First start with some standard catkin stuff.
 cmake_minimum_required(VERSION 2.8.3)
 project(octopus_rviz_plugin)
-find_package(catkin REQUIRED COMPONENTS rviz std_msgs)
-catkin_package()
+find_package(catkin REQUIRED COMPONENTS rviz std_msgs dbw_mkz_msgs)
+catkin_package(CATKIN_DEPENDS dbw_mkz_msgs)
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
