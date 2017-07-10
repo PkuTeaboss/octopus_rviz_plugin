@@ -25,10 +25,10 @@ namespace octopus_rviz_plugin
       "size", 200, "", this, SLOT(updateSize())
       );
     left_property_ = new rviz::IntProperty(
-      "left", 10, "", this, SLOT(updateLeft())
+      "left", 20, "", this, SLOT(updateLeft())
       );
     top_property_ = new rviz::IntProperty(
-      "top", 10, "", this, SLOT(updateTop())
+      "top", 20, "", this, SLOT(updateTop())
       );
 
     pointer_color_property_ = new rviz::ColorProperty(

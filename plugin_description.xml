@@ -1,4 +1,12 @@
 <library path="lib/liboctopus_rviz_plugin">
+	<class name="octopus_rviz_plugin/VehicleControl"
+		type="octopus_rviz_plugin::VehicleControlDisplay"
+		base_class_type="rviz::Display">
+		<description>
+			Displays vehicle controls
+		</description>
+	</class>
+
 	<class name="octopus_rviz_plugin/Speed"
 		type="octopus_rviz_plugin::SpeedDisplay"
 		base_class_type="rviz::Display">
@@ -7,7 +15,8 @@
 		</description>
 	</class>
 
-	<class name="octopus_rviz_plugin/Octopus Picker"
+
+	<class name="octopus_rviz_plugin/OctopusPicker"
 		type="octopus_rviz_plugin::OverlayPickerTool"
 		base_class_type="rviz::Tool">
 		<description>

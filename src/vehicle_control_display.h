@@ -1,7 +1,7 @@
 // Cheng Zhang
 
-#ifndef SPEED_DISPLAY_H
-#define SPEED_DISPLAY_H
+#ifndef VEHICLE_CONTROL_DISPLAY_H
+#define VEHICLE_CONTROL_DISPLAY_H
 
 #include <dbw_mkz_msgs/TwistCmd.h>
 
@@ -27,11 +27,11 @@
 namespace octopus_rviz_plugin
 {
 
-	class SpeedDisplay: public rviz::Display {
+	class VehicleControlDisplay: public rviz::Display {
 		Q_OBJECT
 	public:
-		SpeedDisplay();
-		virtual ~SpeedDisplay();
+        VehicleControlDisplay();
+        virtual ~VehicleControlDisplay();
 
         // methods for OverlayPickerTool
         virtual bool isInRegion(int x, int y);
@@ -41,27 +41,36 @@ namespace octopus_rviz_plugin
         virtual int getY() { return top_; };
 
     protected:
-       	virtual void onInitialize();												// Inherited; Called when init
-       	virtual void update(float wall_dt, float ros_dt);		// Inherited; Called periodically by the visualization manager.
-       	virtual void onEnable();														// Derived classes override this to do the actual work of enabling themselves.
-       	virtual void onDisable();														// Derived classes override this to do the actual work of disabling themselves. 
-       	//void processMessage(const std_msgs::Float32::ConstPtr& msg);
-        void processMessage(const dbw_mkz_msgs::TwistCmd::ConstPtr& msg);
-        void subscribe();
-        void unsubscribe();
+       	virtual void onInitialize();						// Inherited; Called when init
+       	virtual void update(float wall_dt, float ros_dt);	// Inherited; Called periodically by the visualization manager.
+       	virtual void onEnable();							// Derived classes override this to do the actual work of enabling themselves.
+       	virtual void onDisable();                           // Derived classes override this to do the actual work of disabling themselves. 
 
-        void draw(double val);
+        void draw();
+        void drawPadelBackGround(QPainter& painter, int centerX, int centerY, int startAngle);									
 
-        ros::Subscriber sub_;
         OverlayObject::Ptr overlay_;
         bool update_required_;
-        double data_;
+        QImage wheel_image_;
+        QImage signal_off_image_;
+        QImage signal_on_image_;
+
+        float wheel_angle_;
+        float throttle_angle_;
+        float brake_angle_;
+        uint8_t signal_;
+
+
         int width_;
         int height_;
         int left_;
         int top_;
         QColor pointer_color_;
         QColor fg_color_;
+        QColor throttle_color_;
+        QColor brake_color_;
+        QColor signal_on_color_;
+        QColor signal_off_color_;
         QColor bg_color_;
 
         rviz::RosTopicProperty* topic_property_;
@@ -70,6 +79,9 @@ namespace octopus_rviz_plugin
         rviz::IntProperty*		top_property_;
         rviz::ColorProperty*	pointer_color_property_;
         rviz::ColorProperty* 	fg_color_property_;
+        rviz::ColorProperty*    throttle_color_property_;
+        rviz::ColorProperty*    brake_color_property_;
+        rviz::ColorProperty*    signal_color_property_;
         rviz::FloatProperty* 	fg_alpha_property_;
         rviz::ColorProperty* 	bg_color_property_;
         rviz::FloatProperty* 	bg_alpha_property_;
@@ -82,6 +94,9 @@ namespace octopus_rviz_plugin
         void updateTop();
         void updatePointerColor();
         void updateFGColor();
+        void updateThrottleColor();
+        void updateBrakeColor();
+        void updateSignalColor();
         void updateFGAlpha();
         void updateBGColor();
         void updateBGAlpha();
