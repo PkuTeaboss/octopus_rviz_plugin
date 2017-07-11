@@ -29,6 +29,30 @@ namespace octopus_rviz_plugin
     VehicleControlDisplay::VehicleControlDisplay()
     : rviz::Display(), update_required_(false)
     {
+        steering_topic_property_ = new rviz::RosTopicProperty(
+          "SteeringReport Topic", "",
+          ros::message_traits::datatype<dbw_mkz_msgs::SteeringReport>(),
+          "dbw_mkz_msgs::SteeringReport topic to subscribe to.",
+          this, SLOT( updateSteeringTopic() ));
+
+        brake_topic_property_ = new rviz::RosTopicProperty(
+          "BrakeReport Topic", "",
+          ros::message_traits::datatype<dbw_mkz_msgs::BrakeReport>(),
+          "dbw_mkz_msgs::BrakeReport topic to subscribe to.",
+          this, SLOT( updateBrakeTopic() ));
+
+        throttle_topic_property_ = new rviz::RosTopicProperty(
+          "Throttle Topic", "",
+          ros::message_traits::datatype<dbw_mkz_msgs::ThrottleReport>(),
+          "dbw_mkz_msgs::ThrottleReport topic to subscribe to.",
+          this, SLOT( updateThrottleTopic() ));
+
+        signal_topic_property_ = new rviz::RosTopicProperty(
+          "TurnSignal Topic", "",
+          ros::message_traits::datatype<dbw_mkz_msgs::TurnSignal>(),
+          "dbw_mkz_msgs::TurnSignal topic to subscribe to.",
+          this, SLOT( updateSignalTopic() ));
+
         size_property_ = new rviz::IntProperty(
           "size", 200, "", this, SLOT(updateSize())
           );
@@ -66,7 +90,7 @@ namespace octopus_rviz_plugin
           "Background Alpha", 0.2, "", this, SLOT(updateBGAlpha())
           );
 
-        wheel_angle_ = 30.0f;
+        wheel_angle_ = 0.0f;
         throttle_angle_ = 32.2f;
         brake_angle_ = 50.0f;
         signal_ = 1;
@@ -103,8 +127,9 @@ namespace octopus_rviz_plugin
         overlay_->updateTextureSize(width_, height_);
         overlay_->setPosition(left_, top_);
         overlay_->setDimensions(overlay_->getTextureWidth(),
-          overlay_->getTextureHeight());
+            overlay_->getTextureHeight());
         draw();
+
     }
 
 
@@ -122,10 +147,18 @@ namespace octopus_rviz_plugin
 
 
     void VehicleControlDisplay::onEnable() {
+        subscribeSteering();
+        subscribeBrake();
+        subscribeThrottle();
+        subscribeSignal();
         overlay_->show();
     }
 
     void VehicleControlDisplay::onDisable() {
+        unsubscribe(steering_topic_property_);
+        unsubscribe(brake_topic_property_);
+        unsubscribe(throttle_topic_property_);
+        unsubscribe(signal_topic_property_);
         overlay_->hide();
     }
 
@@ -157,13 +190,15 @@ namespace octopus_rviz_plugin
         int centerX = width_ * 0.5;
         int centerY = height_ * 0.6;
 
-        int wheelSize = height_ * 0.9;
+        int wheelSize = height_ * 0.67;
         // Draw wheel
-        QTransform wheelRotate;
-        wheelRotate.rotate(30);
-        painter.drawImage(QRect(centerX-wheelSize/2, centerY-wheelSize/2, wheelSize, wheelSize), 
-            wheel_image_.transformed(wheelRotate));
-
+        //QTransform wheelRotate;
+        //wheelRotate.rotate(wheel_angle_);
+        painter.translate(centerX, centerY);
+        painter.rotate(wheel_angle_);
+        painter.drawImage(QRect(-wheelSize/2, -wheelSize/2, wheelSize, wheelSize), 
+            wheel_image_);
+        painter.resetTransform();
 
         int padelSize = height_ * 0.88;
         int padelWidth = height_ * 0.12;
@@ -202,9 +237,112 @@ namespace octopus_rviz_plugin
         }
 
         painter.end();
-
-
     }
+
+    void VehicleControlDisplay::subscribeSteering() {
+        std::string topic_name = steering_topic_property_->getTopicStd();
+        if (topic_name.length() > 0 && topic_name != "/") {
+            ros::NodeHandle n;
+            sub_map_[topic_name] = n.subscribe(topic_name, 1, &VehicleControlDisplay::processSteeringMessage, this);
+        }
+    }
+
+    void VehicleControlDisplay::subscribeBrake() {
+        std::string topic_name = brake_topic_property_->getTopicStd();
+        if (topic_name.length() > 0 && topic_name != "/") {
+            ros::NodeHandle n;
+            sub_map_[topic_name] = n.subscribe(topic_name, 1, &VehicleControlDisplay::processBrakeMessage, this);
+        }
+    }
+
+    void VehicleControlDisplay::subscribeThrottle() {
+        std::string topic_name = throttle_topic_property_->getTopicStd();
+        if (topic_name.length() > 0 && topic_name != "/") {
+            ros::NodeHandle n;
+            sub_map_[topic_name] = n.subscribe(topic_name, 1, &VehicleControlDisplay::processThrottleMessage, this);
+        }
+    }
+
+    void VehicleControlDisplay::subscribeSignal() {
+        std::string topic_name = signal_topic_property_->getTopicStd();
+        if (topic_name.length() > 0 && topic_name != "/") {
+            ros::NodeHandle n;
+            sub_map_[topic_name] = n.subscribe(topic_name, 1, &VehicleControlDisplay::processSignalMessage, this);
+        }
+    }
+
+
+
+    void VehicleControlDisplay::unsubscribe(rviz::RosTopicProperty* topic_property) {
+        std::string topic_name = topic_property->getTopicStd();
+        if (sub_map_.find(topic_name) != sub_map_.end()) {
+            sub_map_[topic_name].shutdown();
+        }
+    }
+
+    void VehicleControlDisplay::processSteeringMessage(const dbw_mkz_msgs::SteeringReport::ConstPtr& msg) {
+        if (!overlay_->isVisible()) {
+            return;
+        }
+        if (wheel_angle_ != msg->steering_wheel_angle * 180 / 3.14 ){
+            wheel_angle_ = msg->steering_wheel_angle * 180 / 3.14 ;
+            update_required_ = true;
+        }
+    }
+
+    void VehicleControlDisplay::processBrakeMessage(const dbw_mkz_msgs::BrakeReport::ConstPtr& msg) {
+        if (!overlay_->isVisible()) {
+            return;
+        }
+        float tmp = (msg->pedal_input - 0.15) / 0.35 * 80;
+        if (brake_angle_ != tmp) {
+            brake_angle_ = tmp;
+            update_required_ = true;
+        }
+    }
+
+    void VehicleControlDisplay::processThrottleMessage(const dbw_mkz_msgs::ThrottleReport::ConstPtr& msg) {
+        if (!overlay_->isVisible()) {
+            return;
+        }
+        float tmp = (msg->pedal_input - 0.15) / 0.35 * 80;
+        if (throttle_angle_ != tmp) {
+            throttle_angle_ = tmp;
+            update_required_ = true;
+        }
+    }
+
+    void VehicleControlDisplay::processSignalMessage(const dbw_mkz_msgs::TurnSignal::ConstPtr& msg) {
+        if (!overlay_->isVisible()) {
+            return;
+        }
+        if (signal_ != msg->value) {
+            signal_ = msg->value;
+            update_required_ = true;
+        }
+    }
+
+
+    void VehicleControlDisplay::updateSteeringTopic() {
+        unsubscribe(steering_topic_property_);
+        subscribeSteering();
+    }
+
+    void VehicleControlDisplay::updateBrakeTopic() {
+        unsubscribe(brake_topic_property_);
+        subscribeBrake();
+    }
+
+    void VehicleControlDisplay::updateThrottleTopic() {
+        unsubscribe(throttle_topic_property_);
+        subscribeThrottle();
+    }
+
+    void VehicleControlDisplay::updateSignalTopic() {
+        unsubscribe(signal_topic_property_);
+        subscribeSignal();
+    }
+
 
 
 

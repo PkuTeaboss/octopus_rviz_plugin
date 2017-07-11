@@ -3,7 +3,10 @@
 #ifndef VEHICLE_CONTROL_DISPLAY_H
 #define VEHICLE_CONTROL_DISPLAY_H
 
-#include <dbw_mkz_msgs/TwistCmd.h>
+#include <dbw_mkz_msgs/SteeringReport.h>
+#include <dbw_mkz_msgs/BrakeReport.h>
+#include <dbw_mkz_msgs/ThrottleReport.h>
+#include <dbw_mkz_msgs/TurnSignal.h>
 
 #ifndef Q_MOC_RUN
 
@@ -49,15 +52,27 @@ namespace octopus_rviz_plugin
         void draw();
         void drawPadelBackGround(QPainter& painter, int centerX, int centerY, int startAngle);									
 
+        std::map<std::string, ros::Subscriber> sub_map_;
+        void subscribeSteering(); 
+        void subscribeBrake(); 
+        void subscribeThrottle(); 
+        void subscribeSignal(); 
+        void unsubscribe(rviz::RosTopicProperty*);
+        void processSteeringMessage(const dbw_mkz_msgs::SteeringReport::ConstPtr& msg);
+        void processBrakeMessage(const dbw_mkz_msgs::BrakeReport::ConstPtr& msg);
+        void processThrottleMessage(const dbw_mkz_msgs::ThrottleReport::ConstPtr& msg);
+        void processSignalMessage(const dbw_mkz_msgs::TurnSignal::ConstPtr& msg);
+
+
         OverlayObject::Ptr overlay_;
         bool update_required_;
         QImage wheel_image_;
         QImage signal_off_image_;
         QImage signal_on_image_;
 
-        float wheel_angle_;
-        float throttle_angle_;
-        float brake_angle_;
+        int wheel_angle_;
+        int throttle_angle_;
+        int brake_angle_;
         uint8_t signal_;
 
 
@@ -73,7 +88,10 @@ namespace octopus_rviz_plugin
         QColor signal_off_color_;
         QColor bg_color_;
 
-        rviz::RosTopicProperty* topic_property_;
+        rviz::RosTopicProperty* steering_topic_property_;
+        rviz::RosTopicProperty* brake_topic_property_;
+        rviz::RosTopicProperty* throttle_topic_property_;
+        rviz::RosTopicProperty* signal_topic_property_;
         rviz::IntProperty*		size_property_;
         rviz::IntProperty*		left_property_;
         rviz::IntProperty*		top_property_;
@@ -88,7 +106,10 @@ namespace octopus_rviz_plugin
 
 
         protected Q_SLOTS:
-        void updateTopic();
+        void updateSteeringTopic();
+        void updateBrakeTopic();
+        void updateThrottleTopic();
+        void updateSignalTopic();
         void updateSize();
         void updateLeft();
         void updateTop();

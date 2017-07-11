@@ -16,7 +16,6 @@ namespace octopus_rviz_plugin
   {
     topic_property_ = new rviz::RosTopicProperty(
       "Topic", "",
-      //ros::message_traits::datatype<std_msgs::Float32>(),
       ros::message_traits::datatype<dbw_mkz_msgs::TwistCmd>(),
       "dbw_mkz_msgs::TwistCmd topic to subscribe to.",
       this, SLOT( updateTopic() ));
