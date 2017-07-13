@@ -3,7 +3,7 @@
 #ifndef SPEED_DISPLAY_H
 #define SPEED_DISPLAY_H
 
-#include <dbw_mkz_msgs/TwistCmd.h>
+#include <geometry_msgs/TwistStamped.h>
 
 #ifndef Q_MOC_RUN
 
@@ -46,7 +46,7 @@ namespace octopus_rviz_plugin
        	virtual void onEnable();														// Derived classes override this to do the actual work of enabling themselves.
        	virtual void onDisable();														// Derived classes override this to do the actual work of disabling themselves. 
        	//void processMessage(const std_msgs::Float32::ConstPtr& msg);
-        void processMessage(const dbw_mkz_msgs::TwistCmd::ConstPtr& msg);
+        void processMessage(const geometry_msgs::TwistStamped::ConstPtr& msg);
         void subscribe();
         void unsubscribe();
 

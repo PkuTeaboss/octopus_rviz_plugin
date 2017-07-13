@@ -48,9 +48,9 @@ namespace octopus_rviz_plugin
           this, SLOT( updateThrottleTopic() ));
 
         signal_topic_property_ = new rviz::RosTopicProperty(
-          "TurnSignal Topic", "",
-          ros::message_traits::datatype<dbw_mkz_msgs::TurnSignal>(),
-          "dbw_mkz_msgs::TurnSignal topic to subscribe to.",
+          "TurnSignalCmd Topic", "",
+          ros::message_traits::datatype<dbw_mkz_msgs::TurnSignalCmd>(),
+          "dbw_mkz_msgs::TurnSignalCmd topic to subscribe to.",
           this, SLOT( updateSignalTopic() ));
 
         size_property_ = new rviz::IntProperty(
@@ -91,9 +91,9 @@ namespace octopus_rviz_plugin
           );
 
         wheel_angle_ = 0.0f;
-        throttle_angle_ = 32.2f;
-        brake_angle_ = 50.0f;
-        signal_ = 1;
+        throttle_angle_ = 0.0f;
+        brake_angle_ = 0.0f;
+        signal_ = 0;
     }
 
 
@@ -285,7 +285,7 @@ namespace octopus_rviz_plugin
             return;
         }
         if (wheel_angle_ != msg->steering_wheel_angle * 180 / 3.14 ){
-            wheel_angle_ = msg->steering_wheel_angle * 180 / 3.14 ;
+            wheel_angle_ = msg->steering_wheel_angle * 180 / 3.14 * -1.0;
             update_required_ = true;
         }
     }
@@ -294,7 +294,7 @@ namespace octopus_rviz_plugin
         if (!overlay_->isVisible()) {
             return;
         }
-        float tmp = (msg->pedal_input - 0.15) / 0.35 * 80;
+        float tmp = (msg->pedal_input - 0.15) / 0.37 * 80;
         if (brake_angle_ != tmp) {
             brake_angle_ = tmp;
             update_required_ = true;
@@ -305,19 +305,19 @@ namespace octopus_rviz_plugin
         if (!overlay_->isVisible()) {
             return;
         }
-        float tmp = (msg->pedal_input - 0.15) / 0.35 * 80;
+        float tmp = (msg->pedal_input - 0.15) / 0.37 * 80;
         if (throttle_angle_ != tmp) {
             throttle_angle_ = tmp;
             update_required_ = true;
         }
     }
 
-    void VehicleControlDisplay::processSignalMessage(const dbw_mkz_msgs::TurnSignal::ConstPtr& msg) {
+    void VehicleControlDisplay::processSignalMessage(const dbw_mkz_msgs::TurnSignalCmd::ConstPtr& msg) {
         if (!overlay_->isVisible()) {
             return;
         }
-        if (signal_ != msg->value) {
-            signal_ = msg->value;
+        if (signal_ != msg->cmd.value) {
+            signal_ = msg->cmd.value;
             update_required_ = true;
         }
     }

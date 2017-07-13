@@ -36,6 +36,7 @@ set(SRC_FILES
   src/vehicle_control_display.cpp
   src/speed_display.cpp
   src/overlay_picker_tool.cpp
+  src/speed_limit_display.cpp
   )
 
 ## An rviz plugin is just a shared library, so here we declare the

@@ -15,6 +15,14 @@
 		</description>
 	</class>
 
+	<class name="octopus_rviz_plugin/SpeedLimit"
+		type="octopus_rviz_plugin::SpeedLimitDisplay"
+		base_class_type="rviz::Display">
+		<description>
+			Displays US speed limit
+		</description>
+	</class>
+
 
 	<class name="octopus_rviz_plugin/OctopusPicker"
 		type="octopus_rviz_plugin::OverlayPickerTool"

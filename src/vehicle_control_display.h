@@ -6,7 +6,7 @@
 #include <dbw_mkz_msgs/SteeringReport.h>
 #include <dbw_mkz_msgs/BrakeReport.h>
 #include <dbw_mkz_msgs/ThrottleReport.h>
-#include <dbw_mkz_msgs/TurnSignal.h>
+#include <dbw_mkz_msgs/TurnSignalCmd.h>
 
 #ifndef Q_MOC_RUN
 
@@ -61,7 +61,7 @@ namespace octopus_rviz_plugin
         void processSteeringMessage(const dbw_mkz_msgs::SteeringReport::ConstPtr& msg);
         void processBrakeMessage(const dbw_mkz_msgs::BrakeReport::ConstPtr& msg);
         void processThrottleMessage(const dbw_mkz_msgs::ThrottleReport::ConstPtr& msg);
-        void processSignalMessage(const dbw_mkz_msgs::TurnSignal::ConstPtr& msg);
+        void processSignalMessage(const dbw_mkz_msgs::TurnSignalCmd::ConstPtr& msg);
 
 
         OverlayObject::Ptr overlay_;

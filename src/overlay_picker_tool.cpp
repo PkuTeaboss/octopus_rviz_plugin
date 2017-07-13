@@ -46,6 +46,7 @@
 #include "overlay_picker_tool.h"
 #include "speed_display.h"
 #include "vehicle_control_display.h"
+#include "speed_limit_display.h"
 
 namespace octopus_rviz_plugin
 {
@@ -94,6 +95,9 @@ namespace octopus_rviz_plugin
       if (startMovement<SpeedDisplay>(property, event, "speed_display")) {
         return true;
       }
+      if (startMovement<SpeedLimitDisplay>(property, event, "speed_limit_display")) {
+        return true;
+      }
       if (startMovement<VehicleControlDisplay>(property, event, "vehicle_control_display")) {
         return true;
       }
@@ -119,6 +123,9 @@ namespace octopus_rviz_plugin
       if (target_property_type_ == "speed_display") {
         movePosition<SpeedDisplay>(event);
       } 
+      if (target_property_type_ == "speed_limit_display") {
+        movePosition<SpeedLimitDisplay>(event);
+      } 
       if (target_property_type_ == "vehicle_control_display") {
         movePosition<VehicleControlDisplay>(event);
       }
@@ -133,6 +140,9 @@ namespace octopus_rviz_plugin
     if (target_property_) {
       if (target_property_type_ == "speed_display") {
         setPosition<SpeedDisplay>(event);
+      }
+      if (target_property_type_ == "speed_limit_display") {
+        setPosition<SpeedLimitDisplay>(event);
       }
       if (target_property_type_ == "vehicle_control_display") {
         setPosition<VehicleControlDisplay>(event);
