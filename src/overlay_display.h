@@ -1,5 +1,11 @@
 // Cheng Zhang
-// This is the base class for other overlay display
+/*
+    This is the base class for other overlay display.
+    Speed Display/ Speed Limit Display/ Vehicle Control Display
+    have not used this parent class. If time is allowed, it is better
+    to change these three classes using OverlayDisplay as parent class.
+
+*/
 
 #ifndef OCTOPUS_OVERLAY_DISPLAY_H
 #define OCTOPUS_OVERLAY_DISPLAY_H
@@ -42,7 +48,12 @@ namespace octopus_rviz_plugin
         virtual void onEnable();								// Derived classes override this to do the actual work of enabling themselves.
         virtual void onDisable();								// Derived classes override this to do the actual work of disabling themselves. 
 
+        virtual void initProperties();
+
+        virtual void draw();
+
         OverlayObject::Ptr overlay_;
+        bool update_required_;
 
         int width_;
         int height_;
@@ -51,7 +62,6 @@ namespace octopus_rviz_plugin
         QColor fg_color_;
         QColor bg_color_;
 
-        rviz::RosTopicProperty* topic_property_;
         rviz::IntProperty*      size_property_;
         rviz::IntProperty*      left_property_;
         rviz::IntProperty*      top_property_;
@@ -61,17 +71,14 @@ namespace octopus_rviz_plugin
         rviz::FloatProperty*    bg_alpha_property_;
 
         protected Q_SLOTS:
-        void updateTopic();
-        void updateSize();
+        virtual void updateSize();
         void updateLeft();
         void updateTop();
         void updateFGColor();
-        void updateFGAlpha();
+        virtual void updateFGAlpha();
         void updateBGColor();
         void updateBGAlpha();
 
-    private:
-        bool update_required_;
     };
 }
 

@@ -21,7 +21,7 @@ namespace octopus_rviz_plugin
       this, SLOT( updateTopic() ));
 
     size_property_ = new rviz::IntProperty(
-      "size", 200, "", this, SLOT(updateSize())
+      "height", 200, "", this, SLOT(updateSize())
       );
     left_property_ = new rviz::IntProperty(
       "left", 20, "", this, SLOT(updateLeft())

@@ -9,8 +9,16 @@ namespace octopus_rviz_plugin
 	OverlayDisplay::OverlayDisplay()
 	: rviz::Display(), update_required_(false)
 	{
+
+	}
+
+	OverlayDisplay::~OverlayDisplay() {
+
+	}
+
+	void OverlayDisplay::initProperties() {
 		size_property_ = new rviz::IntProperty(
-			"size", 200, "", this, SLOT(updateSize())
+			"height", 100, "", this, SLOT(updateSize())
 			);
 		left_property_ = new rviz::IntProperty(
 			"left", 10, "", this, SLOT(updateLeft())
@@ -20,7 +28,7 @@ namespace octopus_rviz_plugin
 			);
 
 		fg_color_property_ = new rviz::ColorProperty(
-			"Dashboard Color", QColor(220, 220, 0), "", this, SLOT(updateFGColor())
+			"Foreground Color", QColor(220, 220, 0), "", this, SLOT(updateFGColor())
 			);
 		fg_alpha_property_ = new rviz::FloatProperty(
 			"Foreground Alpha", 0.8, "", this,SLOT(updateFGAlpha())
@@ -35,6 +43,7 @@ namespace octopus_rviz_plugin
 	}
 
 	void OverlayDisplay::onInitialize() {
+
 		static int count = 0;
 		rviz::UniformStringStream ss;
 		ss << "OverlayDisplay" << count++;
@@ -60,6 +69,7 @@ namespace octopus_rviz_plugin
 			overlay_->updateTextureSize(width_, height_);
 			overlay_->setPosition(left_, top_);
 			overlay_->setDimensions(overlay_->getTextureWidth(), overlay_->getTextureHeight());
+			draw();
 		}
 	}
 
@@ -69,6 +79,10 @@ namespace octopus_rviz_plugin
 
 	void OverlayDisplay::onDisable() {
 		overlay_->hide();
+	}
+
+	void OverlayDisplay::draw() {
+
 	}
 
 	void OverlayDisplay::updateSize() {
@@ -138,9 +152,3 @@ namespace octopus_rviz_plugin
 
 }
 
-
-// Tell pluginlib about this class.  It is important to do this in
-// global scope, outside our package's namespace.
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(octopus_rviz_plugin::OverlayDisplay,rviz::Display )
-// END_TUTORIAL
