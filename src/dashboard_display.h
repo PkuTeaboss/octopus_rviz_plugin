@@ -37,9 +37,8 @@ namespace octopus_rviz_plugin
 
         dashboard data_;
         QImage wheel_image_;
-        QImage signal_off_image_;
         QImage signal_on_image_;
-
+        QImage signal_off_image_;
 
         rviz::RosTopicProperty* topic_property_;
 

@@ -21,6 +21,7 @@ namespace octopus_rviz_plugin
 
 		size_property_->setValue(300);
 		fg_color_property_->setValue(QColor(69, 193, 251));
+		bg_color_property_->setValue(QColor(0, 0, 90));
 	}
 
 	DashboardDisplay::~DashboardDisplay(){
@@ -236,6 +237,8 @@ namespace octopus_rviz_plugin
 		int scaleOuterR = width / 2 - 2 * width / 128;
 		int fillR = (scaleInnerR + scaleOuterR) / 2;
 		int fillWidth = scaleOuterR - scaleInnerR;
+		int textYOffset = width * 0.38;
+		int textSize = width * 0.07;
 
 		// draw steering_angle_value
 		int centerDegree = getDegree(0, minValue, maxValue, beginAngle, endAngle);
@@ -255,18 +258,44 @@ namespace octopus_rviz_plugin
 		painter.setPen(QPen(fill_color, 1, Qt::SolidLine, Qt::FlatCap));
 		drawRadiusLine(painter, centerX, centerY, scaleInnerR, scaleOuterR, getDegree(0, minValue, maxValue, beginAngle, endAngle));
 
-
-
 		// draw wheel
 		painter.translate(centerX, centerY);
 		painter.rotate(steering_wheel_angle * 180 / 3.14);
-		painter.drawImage(QRect(-radius/2, -radius/2, radius, radius), 
-			wheel_image);
+		painter.drawImage(QRect(-radius/2, -radius/2, radius, radius), wheel_image);
 		painter.resetTransform();
+
+		// draw degree
+		painter.setPen(QPen(fg_color, scaleWidth, Qt::SolidLine));
+		QFont font = painter.font();
+		font.setPointSize(textSize);
+		font.setBold(true);
+		painter.setFont(font);
+		QString degreeString;
+		float tmpDegree = steering_wheel_angle * 180 / 3.14;
+		if (tmpDegree < 1) {
+			degreeString = QString::number(tmpDegree, 'f', 2) + "°";
+		} else {
+			degreeString = QString::number(tmpDegree, 'g', 3) + "°";
+		}
+		painter.drawText(
+			centerX - width/2, centerY + textYOffset, width, textSize * 1.1,
+			Qt::AlignCenter | Qt::AlignVCenter, degreeString
+			);
 	}
 
-	void drawSignal(QPainter& painter) {
+	void drawTurnSignal(QPainter& painter,uint8_t turn_signal, int centerX, int centerY, int width, int height, QImage& signal_on_image, QImage& signal_off_image) {
+		
+		painter.translate(centerX - (width/2 - height/2), centerY);
+		painter.rotate(180);
+		painter.drawImage(QRect(-height/2, -height/2, height, height), 
+			turn_signal == 1 ? signal_on_image : signal_off_image);
+		painter.resetTransform();
 
+		painter.translate(centerX + (width/2 - height/2), centerY);
+		painter.drawImage(QRect(-height/2, -height/2, height, height),
+			turn_signal == 2 ? signal_on_image : signal_off_image);
+		painter.resetTransform();
+		
 	}
 
 
@@ -275,6 +304,7 @@ namespace octopus_rviz_plugin
 		QImage Hud = buffer.getQImage(*overlay_, bg_color_);
 		QPainter painter( &Hud );
 		painter.setRenderHint(QPainter::Antialiasing, true);
+		painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
 
 		// Left Dashboard
@@ -315,7 +345,7 @@ namespace octopus_rviz_plugin
 			QColor fill_color(220, 203, 214, fg_color_.alpha());
 			float bounds[4] = {data_.x_accel_lower_bound, data_.x_accel_lower_comfort, data_.x_accel_upper_comfort, data_.x_accel_upper_bound};
 			drawBoundedBar(painter, data_.x_accel_data, bounds,
-				width_-height_/2, height_/2, height_, 140, 40, fg_color_, bound_color, fill_color);
+				width_-height_/2, height_/2 + height_*0.01, height_, 140, 40, fg_color_, bound_color, fill_color);
 		}
 
 		{
@@ -323,14 +353,16 @@ namespace octopus_rviz_plugin
 			QColor fill_color(220, 203, 214, fg_color_.alpha());
 			float bounds[4] = {data_.x_jerk_lower_bound, data_.x_jerk_lower_comfort, data_.x_jerk_upper_comfort, data_.x_jerk_upper_bound};
 			drawBoundedBar(painter, data_.x_jerk_data, bounds,
-				width_-height_/2, height_/2 - height_*0.08, height_, -140, -40, fg_color_, bound_color, fill_color);
+				width_-height_/2, height_/2 - height_*0.05, height_, -140, -40, fg_color_, bound_color, fill_color);
 		}
 
 		{
 			QColor fill_color(100, 100, 100, fg_color_.alpha());
-			drawSteeringWheel(painter, data_.steering_wheel_angle, width_-height_/2, height_/2, height_ * 0.75, 
+			drawSteeringWheel(painter, data_.steering_wheel_angle, width_-height_/2, height_/2, height_ * 0.7, 
 				wheel_image_, fg_color_, fill_color);
 		}
+
+		drawTurnSignal(painter, data_.turn_signal, width_-height_/2, height_*0.3, height_, height_*0.15, signal_on_image_, signal_off_image_);
 
 		
 		painter.end();
@@ -343,7 +375,7 @@ namespace octopus_rviz_plugin
 		if (size <= 32 || size >= 1024) {
 			return;
 		}
-		width_ = 2.2 * size_property_->getInt();
+		width_ = 2.1 * size_property_->getInt();
 		height_ = size_property_->getInt();
 		update_required_ = true;
 	}
