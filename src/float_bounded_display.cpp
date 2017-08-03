@@ -66,10 +66,12 @@ namespace octopus_rviz_plugin
 	}
 
 	void FloatBoundedDisplay::onEnable() {
+		subscribe();
 		OverlayDisplay::onEnable();
 	}
 
 	void FloatBoundedDisplay::onDisable() {
+		unsubscribe();
 		OverlayDisplay::onDisable();
 	}
 
@@ -180,7 +182,7 @@ namespace octopus_rviz_plugin
 			int pointerInnerR = scaleR - height_ * 0.18;
 			int pointerOuterR = scaleR + height_ * 0.12;
 			int pointerWidth = 2 * height_ / 100;
-			int tmpData = data_;
+			float tmpData = data_;
 			if (tmpData < min_value_) tmpData = min_value_;
 			else if (tmpData > max_value_) tmpData = max_value_;
 			int angle = min_angle + (tmpData - min_value_) / (max_value_ - min_value_) * (max_angle - min_angle);

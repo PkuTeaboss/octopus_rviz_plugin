@@ -50,7 +50,7 @@ namespace octopus_rviz_plugin
 
         virtual void initProperties();
 
-        virtual void draw();
+        virtual void draw() {}
 
         OverlayObject::Ptr overlay_;
         bool update_required_;

@@ -3,8 +3,20 @@
 ## First start with some standard catkin stuff.
 cmake_minimum_required(VERSION 2.8.3)
 project(octopus_rviz_plugin)
-find_package(catkin REQUIRED COMPONENTS rviz std_msgs dbw_mkz_msgs)
-catkin_package(CATKIN_DEPENDS dbw_mkz_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy rviz std_msgs dbw_mkz_msgs message_generation)
+
+add_message_files(
+  FILES
+  dashboard.msg
+  dashboard_control_signal.msg
+  )
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  )
+
+catkin_package(CATKIN_DEPENDS dbw_mkz_msgs message_runtime)
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
@@ -39,6 +51,7 @@ set(SRC_FILES
   src/speed_limit_display.cpp
   src/overlay_display.cpp
   src/float_bounded_display.cpp
+  src/dashboard_display.cpp
   )
 
 ## An rviz plugin is just a shared library, so here we declare the
@@ -48,6 +61,9 @@ set(SRC_FILES
 ## in ``${SRC_FILES}``.
 add_library(${PROJECT_NAME} ${SRC_FILES})
 add_dependencies(${PROJECT_NAME} {${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
+
 
 ## Link the myviz executable with whatever Qt libraries have been defined by
 ## the ``find_package(Qt4 ...)`` line above, or by the

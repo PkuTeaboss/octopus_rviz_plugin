@@ -81,10 +81,6 @@ namespace octopus_rviz_plugin
 		overlay_->hide();
 	}
 
-	void OverlayDisplay::draw() {
-
-	}
-
 	void OverlayDisplay::updateSize() {
 		int size = size_property_->getInt();
 		if (size <= 32 || size >= 1024) {
