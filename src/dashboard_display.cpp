@@ -17,6 +17,10 @@ namespace octopus_rviz_plugin
 			"octopus_rviz_plugin::dashboard topic to subscribe to.",
 			this, SLOT( updateTopic() ));
 
+		stick_bottom_property_ = new rviz::BoolProperty(
+			"stick to bottom", true, "", this, SLOT(updateStickBottom())
+			);
+
 		width_property_ = new rviz::IntProperty(
 			"width", 700, "", this, SLOT(updateWidth())
 			);
@@ -37,12 +41,32 @@ namespace octopus_rviz_plugin
 		signal_off_image_ = QImage(QString(ros::package::getPath("octopus_rviz_plugin").c_str())+"/media/arrow.png");
 		signal_on_image_ = signal_off_image_;
 
+		updateStickBottom();
 		updateWidth();
 
 		OverlayDisplay::onInitialize();
 	}
 
 	void DashboardDisplay::update(float wall_dt, float ros_dt) {
+		if (stick_bottom_) {
+			int padding = 20;
+			Ogre::OverlayManager* mOverlayMgr = Ogre::OverlayManager::getSingletonPtr();
+			int newWidth = mOverlayMgr->getViewportWidth() - 2 * padding;
+			int newLeft = padding;
+			int newTop = mOverlayMgr->getViewportHeight() - height_;
+
+			if (newWidth > 0 && newTop > 0 && newLeft > 0 && 
+				(newWidth != width_ || newLeft != left_ || newTop != top_) ) {
+				width_property_->setValue(newWidth);
+				left_property_->setValue(newLeft);
+				top_property_->setValue(newTop);
+				width_ = newWidth;
+				left_ = newLeft;
+				top_ = newTop;
+				update_required_ = true;
+			}
+		}
+
 		OverlayDisplay::update(wall_dt, ros_dt);
 	}
 
@@ -447,12 +471,30 @@ namespace octopus_rviz_plugin
 
 		
 		if (data_.dbw_enabled) {
-			drawDBWEnabled(painter, width_/2 + height_*0.025, height_*0.72, height_*0.45, height_*0.07, fg_color_);
+			if (width_ > height_ * 3.4) {
+				drawDBWEnabled(painter, width_/2 + height_*0.025, height_*0.9, width_ - height_*2.5, height_*0.15, fg_color_);
+			} else {
+				drawDBWEnabled(painter, width_/2 + height_*0.025, height_*0.72, height_*0.45, height_*0.07, fg_color_);
+			}
+			
 		}
 		
 		painter.end();
 	}
 
+
+	void DashboardDisplay::updateStickBottom() {
+		if (!stick_bottom_) {
+			saved_width_ = width_;
+			saved_left_ = left_;
+			saved_top_ = top_;
+		} else {
+			width_property_->setValue(saved_width_);
+			left_property_->setValue(saved_left_);
+			top_property_->setValue(saved_top_);
+		}
+		stick_bottom_ = stick_bottom_property_->getBool();
+	}
 
 
 	void DashboardDisplay::updateSize() {

@@ -39,11 +39,20 @@ namespace octopus_rviz_plugin
         QImage wheel_image_;
         QImage signal_on_image_;
         QImage signal_off_image_;
+        bool stick_bottom_;
+
+        int saved_width_;
+        int saved_left_;
+        int saved_top_;
+        int horizontal_padding_;
 
         rviz::RosTopicProperty* topic_property_;
         rviz::IntProperty*		width_property_;
+        rviz::BoolProperty*     stick_bottom_property_;
+        rviz::BoolProperty*		full_width_property_;
 
         protected Q_SLOTS:
+        void updateStickBottom();
         void updateWidth();
         virtual void updateSize();
         void updateTopic();

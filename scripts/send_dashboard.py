@@ -65,6 +65,7 @@ def dashboard_display_tester():
 
 		if (count % 100 == 0):
 			msg.dbw_enabled = random.randint(0,1)
+		msg.dbw_enabled = True	
 
 		rospy.loginfo(msg)
 		pub.publish(msg)
