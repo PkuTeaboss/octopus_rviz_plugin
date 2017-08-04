@@ -17,6 +17,10 @@ namespace octopus_rviz_plugin
 			"octopus_rviz_plugin::dashboard topic to subscribe to.",
 			this, SLOT( updateTopic() ));
 
+		width_property_ = new rviz::IntProperty(
+			"width", 700, "", this, SLOT(updateWidth())
+			);
+
 		OverlayDisplay::initProperties();
 
 		size_property_->setValue(300);
@@ -32,6 +36,8 @@ namespace octopus_rviz_plugin
 		wheel_image_  = QImage(QString(ros::package::getPath("octopus_rviz_plugin").c_str())+"/media/wheel.png");
 		signal_off_image_ = QImage(QString(ros::package::getPath("octopus_rviz_plugin").c_str())+"/media/arrow.png");
 		signal_on_image_ = signal_off_image_;
+
+		updateWidth();
 
 		OverlayDisplay::onInitialize();
 	}
@@ -124,14 +130,14 @@ namespace octopus_rviz_plugin
 
 		// Draw Speed
 		painter.drawText(
-			centerX - textSize * 3, centerY, textSize*6, textSize,
+			centerX - textSize * 3, centerY + width*0.07, textSize*6, textSize,
 			Qt::AlignCenter | Qt::AlignVCenter, "MPH"
 			);
 
 		font.setPointSize(speedSize);
 		painter.setFont(font);
 		painter.drawText(
-			centerX - speedSize * 3, centerY - width * 0.12 - speedSize/2, speedSize*6, speedSize,
+			centerX - speedSize * 3, centerY - width*0.05 - speedSize/2, speedSize*6, speedSize,
 			Qt::AlignCenter | Qt::AlignVCenter, QString::number(speed, 'f', 1)
 			);
 		
@@ -283,7 +289,8 @@ namespace octopus_rviz_plugin
 			);
 	}
 
-	void drawTurnSignal(QPainter& painter,uint8_t turn_signal, int centerX, int centerY, int width, int height, QImage& signal_on_image, QImage& signal_off_image) {
+	void drawTurnSignal(QPainter& painter,uint8_t turn_signal, int centerX, int centerY, int width, int height, QImage& signal_on_image, QImage& signal_off_image) 
+	{
 		
 		painter.translate(centerX - (width/2 - height/2), centerY);
 		painter.rotate(180);
@@ -296,6 +303,72 @@ namespace octopus_rviz_plugin
 			turn_signal == 2 ? signal_on_image : signal_off_image);
 		painter.resetTransform();
 		
+	}
+
+	void drawText(QPainter& painter, QString text, int centerX, int centerY, int width, int height, QColor fg_color, QColor fill_color) {
+		int edgeWidth = width * 0.02;
+		int textSize = height * 0.6;
+
+		painter.setPen(QPen(fill_color, height, Qt::SolidLine, Qt::FlatCap));
+		painter.drawLine(centerX-width/2, centerY, centerX+width/2, centerY);
+
+		painter.setPen(QPen(fg_color, edgeWidth, Qt::SolidLine));
+		painter.drawRect(centerX-width/2, centerY-height/2, width, height);
+
+		QFont font = painter.font();
+		font.setPointSize(textSize);
+		painter.setFont(font);
+		painter.drawText(
+			centerX-width/2, centerY-height/2, width, height, Qt::AlignCenter | Qt::AlignVCenter, text
+			);
+	}
+
+	void drawControls(QPainter& painter, uint8_t cmd_source, uint8_t cmd_method, float cmd_data, QString method1, QString method2,
+		int centerX, int centerY, int width, int height, QColor& fg_color)
+	{
+		QColor fill_color(0, 0, 0, 0);
+
+		if (cmd_source == 1) {
+			drawText(painter, "DBW", centerX, centerY - height/3, width, height/3, fg_color, fill_color);
+		} else if (cmd_source == 2) {
+			drawText(painter, "JOY", centerX, centerY - height/3, width, height/3, fg_color, fill_color);
+		}
+
+		if (cmd_method == 1) {
+			drawText(painter, method1, centerX, centerY, width, height/3, fg_color, fill_color);
+		} else if (cmd_method == 2) {
+			drawText(painter, method2, centerX, centerY, width, height/3, fg_color, fill_color);
+		}
+		
+		if (cmd_method != 0) {
+			drawText(painter, QString::number(cmd_data, 'g', 3) , centerX, centerY + height/3, width, height/3, fg_color, fill_color);
+		}
+	}
+
+	void drawDBWEnabled(QPainter& painter, int centerX, int centerY, int width, int height, QColor fg_color) {
+		int textSize = height * 0.65;
+		float period = 4.0f;
+		int minAlpha = 20;
+		int maxAlpha = fg_color.alpha();
+		float tmp = fmod(ros::Time::now().toSec(), period);
+		int alpha;
+		if (tmp < period / 2){
+			alpha = minAlpha + (maxAlpha - minAlpha) * (tmp/period);
+		} else {
+			alpha = minAlpha + (maxAlpha - minAlpha) * ((period - tmp)/period);
+		}
+		QColor fill_color(0, 255, 0, alpha);
+
+		painter.setPen(QPen(fill_color, height, Qt::SolidLine, Qt::FlatCap));
+		painter.drawLine(centerX-width/2, centerY, centerX+width/2, centerY);
+
+		painter.setPen(QPen(fg_color, height, Qt::SolidLine, Qt::FlatCap));
+		QFont font = painter.font();
+		font.setPointSize(textSize);
+		painter.setFont(font);
+		painter.drawText(
+			centerX-width/2, centerY-height/2, width, height, Qt::AlignCenter | Qt::AlignVCenter, "DBW Enabled"
+			);
 	}
 
 
@@ -314,16 +387,16 @@ namespace octopus_rviz_plugin
 		{
 			QColor bound_color(255, 50, 50, fg_color_.alpha());
 			QColor fill_color(220, 203, 214, fg_color_.alpha());
-			float bounds[4] = {data_.y_accel_lower_bound, data_.y_accel_lower_comfort, data_.y_accel_upper_comfort, data_.y_accel_upper_bound};
-			drawBoundedBar(painter, data_.y_accel_data, bounds,
+			float bounds[4] = {data_.x_accel_lower_bound, data_.x_accel_lower_comfort, data_.x_accel_upper_comfort, data_.x_accel_upper_bound};
+			drawBoundedBar(painter, data_.x_accel_data, bounds,
 				height_/2, height_/2, height_, 220, 120, fg_color_, bound_color, fill_color);
 		}
 
 		{
 			QColor bound_color(255, 50, 50, fg_color_.alpha());
 			QColor fill_color(220, 203, 214, fg_color_.alpha());
-			float bounds[4] = {data_.y_jerk_lower_bound, data_.y_jerk_lower_comfort, data_.y_jerk_upper_comfort, data_.y_jerk_upper_bound};
-			drawBoundedBar(painter, data_.y_jerk_data, bounds,
+			float bounds[4] = {data_.x_jerk_lower_bound, data_.x_jerk_lower_comfort, data_.x_jerk_upper_comfort, data_.x_jerk_upper_bound};
+			drawBoundedBar(painter, data_.x_jerk_data, bounds,
 				height_/2, height_/2, height_, -40, 60, fg_color_, bound_color, fill_color);
 		}
 
@@ -343,16 +416,16 @@ namespace octopus_rviz_plugin
 		{
 			QColor bound_color(255, 50, 50, fg_color_.alpha());
 			QColor fill_color(220, 203, 214, fg_color_.alpha());
-			float bounds[4] = {data_.x_accel_lower_bound, data_.x_accel_lower_comfort, data_.x_accel_upper_comfort, data_.x_accel_upper_bound};
-			drawBoundedBar(painter, data_.x_accel_data, bounds,
-				width_-height_/2, height_/2 + height_*0.01, height_, 140, 40, fg_color_, bound_color, fill_color);
+			float bounds[4] = {data_.y_accel_lower_bound, data_.y_accel_lower_comfort, data_.y_accel_upper_comfort, data_.y_accel_upper_bound};
+			drawBoundedBar(painter, data_.y_accel_data, bounds,
+				width_-height_/2, height_/2, height_, 140, 40, fg_color_, bound_color, fill_color);
 		}
 
 		{
 			QColor bound_color(255, 50, 50, fg_color_.alpha());
 			QColor fill_color(220, 203, 214, fg_color_.alpha());
-			float bounds[4] = {data_.x_jerk_lower_bound, data_.x_jerk_lower_comfort, data_.x_jerk_upper_comfort, data_.x_jerk_upper_bound};
-			drawBoundedBar(painter, data_.x_jerk_data, bounds,
+			float bounds[4] = {data_.y_jerk_lower_bound, data_.y_jerk_lower_comfort, data_.y_jerk_upper_comfort, data_.y_jerk_upper_bound};
+			drawBoundedBar(painter, data_.y_jerk_data, bounds,
 				width_-height_/2, height_/2 - height_*0.05, height_, -140, -40, fg_color_, bound_color, fill_color);
 		}
 
@@ -364,6 +437,18 @@ namespace octopus_rviz_plugin
 
 		drawTurnSignal(painter, data_.turn_signal, width_-height_/2, height_*0.3, height_, height_*0.15, signal_on_image_, signal_off_image_);
 
+
+		// Middle Dashboard
+		drawControls(painter, data_.linear_cmd_source, data_.linear_cmd_method, data_.linear_cmd_data, "SPEED", "PEDAL",
+			height_ + height_*0.04, height_*0.87, height_*0.24, height_*0.18, fg_color_);
+
+		drawControls(painter, data_.angular_cmd_source, data_.angular_cmd_method, data_.angular_cmd_data, "YAWRATE", "STEERING",
+			width_ - height_ + height_*0.005, height_*0.87, height_*0.24, height_*0.18, fg_color_);
+
+		
+		if (data_.dbw_enabled) {
+			drawDBWEnabled(painter, width_/2 + height_*0.025, height_*0.72, height_*0.45, height_*0.07, fg_color_);
+		}
 		
 		painter.end();
 	}
@@ -375,8 +460,16 @@ namespace octopus_rviz_plugin
 		if (size <= 32 || size >= 1024) {
 			return;
 		}
-		width_ = 2.1 * size_property_->getInt();
 		height_ = size_property_->getInt();
+		update_required_ = true;
+	}
+
+	void DashboardDisplay::updateWidth() {
+		int value = width_property_->getInt();
+		if (value <= 64 || value >= 2048) {
+			return;
+		}
+		width_ = width_property_->getInt();
 		update_required_ = true;
 	}
 

@@ -41,8 +41,10 @@ namespace octopus_rviz_plugin
         QImage signal_off_image_;
 
         rviz::RosTopicProperty* topic_property_;
+        rviz::IntProperty*		width_property_;
 
         protected Q_SLOTS:
+        void updateWidth();
         virtual void updateSize();
         void updateTopic();
         virtual void updateFGAlpha();
