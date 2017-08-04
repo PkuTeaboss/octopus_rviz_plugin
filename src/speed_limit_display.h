@@ -56,6 +56,7 @@ namespace octopus_rviz_plugin
 
 		std::string speed_limit_;
 
+		bool stick_top_right_;
 		int width_;
 		int height_;
 		int left_;
@@ -63,7 +64,11 @@ namespace octopus_rviz_plugin
 
 		float alpha_;
 
+		int saved_left_;
+		int saved_top_;
+
 		rviz::RosTopicProperty* topic_property_;
+		rviz::BoolProperty*		stick_top_right_property_;
 		rviz::IntProperty*		size_property_;
 		rviz::IntProperty*		left_property_;
 		rviz::IntProperty*		top_property_;
@@ -71,6 +76,7 @@ namespace octopus_rviz_plugin
 
 		protected Q_SLOTS:
 		void updateTopic();
+		void updateStickTopRight();
 		void updateSize();
 		void updateLeft();
 		void updateTop();

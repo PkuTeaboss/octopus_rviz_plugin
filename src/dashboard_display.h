@@ -44,7 +44,6 @@ namespace octopus_rviz_plugin
         int saved_width_;
         int saved_left_;
         int saved_top_;
-        int horizontal_padding_;
 
         rviz::RosTopicProperty* topic_property_;
         rviz::IntProperty*		width_property_;

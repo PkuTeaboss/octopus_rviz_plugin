@@ -20,6 +20,10 @@ namespace octopus_rviz_plugin
 			"std_msgs::String topic to subscribe to.",
 			this, SLOT( updateTopic() ));
 
+		stick_top_right_property_ = new rviz::BoolProperty(
+			"stick to top right", true, "", this, SLOT(updateStickTopRight())
+			);
+
 		size_property_ = new rviz::IntProperty(
 			"height", 200, "", this, SLOT(updateSize())
 			);
@@ -52,6 +56,7 @@ namespace octopus_rviz_plugin
 		font_family_ = QFontDatabase::applicationFontFamilies(id).at(0);
 
 		onEnable();
+		updateStickTopRight();
 		updateAlpha();
 		updateSize();
 		updateLeft();
@@ -65,6 +70,23 @@ namespace octopus_rviz_plugin
 	}
 
 	void SpeedLimitDisplay::update(float wall_dt, float ros_dt) {
+		if (stick_top_right_) {
+			int padding = 20;
+			Ogre::OverlayManager* mOverlayMgr = Ogre::OverlayManager::getSingletonPtr();
+			int newLeft = mOverlayMgr->getViewportWidth() - width_ - padding;
+			int newTop = padding;
+
+			if (newTop > 0 && newLeft > 0 && (newLeft != left_ || newTop != top_) ) {
+				left_property_->setValue(newLeft);
+				top_property_->setValue(newTop);
+				left_ = newLeft;
+				top_ = newTop;
+				update_required_ = true;
+			}
+		}
+
+
+
 		if (update_required_) {
 			update_required_ = false;
 			overlay_->updateTextureSize(width_, height_);
@@ -146,6 +168,17 @@ namespace octopus_rviz_plugin
 	void SpeedLimitDisplay::updateTopic() {
 		unsubscribe();
 		subscribe();
+	}
+
+	void SpeedLimitDisplay::updateStickTopRight() {
+		if (!stick_top_right_) {
+			saved_top_ = top_;
+			saved_left_ = left_;
+		} else {
+			top_property_->setValue(saved_top_);
+			left_property_->setValue(saved_left_);
+		}
+		stick_top_right_ = stick_top_right_property_->getBool();
 	}
 
 
