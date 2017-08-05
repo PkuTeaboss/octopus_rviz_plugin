@@ -41,13 +41,20 @@
 		</description>
 	</class>
 
-
 	<class name="octopus_rviz_plugin/OctopusPicker"
 		type="octopus_rviz_plugin::OverlayPickerTool"
 		base_class_type="rviz::Tool">
 		<description>
 			Tool to drag and drop octopus overlays in rviz.
 			Use SHIFT to switch magnet for overlay dragging.
+		</description>
+	</class>
+
+	<class name="octopus_rviz_plugin/CarCreator"
+		type="octopus_rviz_plugin::CarCreatorTool"
+		base_class_type="rviz::Tool">
+		<description>
+			Click to add a car
 		</description>
 	</class>
 

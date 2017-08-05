@@ -52,6 +52,7 @@ set(SRC_FILES
   src/overlay_display.cpp
   src/float_bounded_display.cpp
   src/dashboard_display.cpp
+  src/car_creator_tool.cpp
   )
 
 ## An rviz plugin is just a shared library, so here we declare the
